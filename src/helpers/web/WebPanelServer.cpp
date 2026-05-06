@@ -2568,9 +2568,10 @@ bool WebPanelServer::start() {
   config.httpd.max_open_sockets = 2;
   config.httpd.max_uri_handlers = 7;
   config.httpd.max_resp_headers = 4;
-  config.httpd.backlog_conn = 2;
-  config.httpd.recv_wait_timeout = 2;
-  config.httpd.send_wait_timeout = 2;
+  config.httpd.backlog_conn = 0;
+  config.httpd.recv_wait_timeout = 10;
+  config.httpd.send_wait_timeout = 10;
+  config.httpd.lru_purge_enable = true;
   config.httpd.stack_size = kWebServerStackSize;
   config.httpd.task_priority = tskIDLE_PRIORITY + 2;
   config.httpd.core_id = 0;
@@ -2613,9 +2614,9 @@ bool WebPanelServer::start() {
   redirect_config.max_open_sockets = 2;
   redirect_config.max_uri_handlers = 1;
   redirect_config.max_resp_headers = 4;
-  redirect_config.backlog_conn = 2;
-  redirect_config.recv_wait_timeout = 2;
-  redirect_config.send_wait_timeout = 2;
+  redirect_config.backlog_conn = 0;
+  redirect_config.recv_wait_timeout = 10;
+  redirect_config.send_wait_timeout = 10;
   redirect_config.stack_size = kWebServerStackSize;
   redirect_config.task_priority = tskIDLE_PRIORITY + 2;
   redirect_config.core_id = 0;
