@@ -29,7 +29,7 @@ with tempfile.TemporaryDirectory() as tmp:
 
     try:
         subprocess.run(
-            ["openssl", "ecparam", "-name", "prime256v1", "-genkey", "-noout", "-out", str(key_path)],
+            ["openssl", "genrsa", "-out", str(key_path), "2048"],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
