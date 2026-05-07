@@ -56,15 +56,7 @@ bool WebService::setWebEnabled(bool enabled) {
   if (!enabled) {
     _suspended_for_ota = false;
   }
-  bool ok = savePrefs();
-#if defined(ESP_PLATFORM) && WITH_WEB_PANEL
-  if (_prefs.web_enabled != 0 && !_suspended_for_ota) {
-    ensureWebServer();
-  } else {
-    _panel.stop();
-  }
-#endif
-  return ok;
+  return savePrefs();
 }
 
 bool WebService::setWebStatsEnabled(bool enabled) {
