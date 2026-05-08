@@ -21,7 +21,7 @@ public:
   void setNetworkStateProvider(NetworkStateProvider* network) { _network = network; }
 
   bool setWebEnabled(bool enabled);
-  bool isWebEnabled() const { return _prefs.web_enabled != 0; }
+  bool isWebEnabled() const { return _prefs.web_enabled != 0 || _panel.isRunning(); }
   bool setWebStatsEnabled(bool enabled);
   bool isWebStatsEnabled() const { return _prefs.web_stats_enabled != 0; }
 
