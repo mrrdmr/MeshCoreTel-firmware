@@ -494,11 +494,13 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
     .metric-grid-4 { grid-template-columns:repeat(4,minmax(0,1fr)); }
     .core-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
     .core-grid .hud-row { align-content:start; }
-    .core-metrics { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .core-metrics { grid-template-columns:repeat(5,minmax(0,1fr)); }
     .metric { background:rgba(255,255,255,.45); border:1px solid var(--border); border-radius:12px; padding:10px; }
     :root[data-theme="dark"] .metric { background:rgba(0,0,0,.16); }
     .metric-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; }
     .metric-value { margin-top:4px; font-size:16px; font-weight:700; color:var(--text); }
+    .metric-spread { display:flex; justify-content:space-between; margin-top:4px; }
+    .metric-spread span { font-size:16px; font-weight:700; color:var(--text); }
     .events-table-wrap { overflow-x:auto; border:1px solid var(--border); border-radius:12px; }
     .events-table { width:100%; border-collapse:collapse; }
     .events-table th, .events-table td { padding:10px 12px; text-align:left; font-size:13px; }
@@ -1457,6 +1459,14 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
         <div class="metric-grid core-metrics">
           ${renderMetric("Uptime", formatDuration(core.uptime_secs))}
           ${renderMetric("Battery", (core.battery_mv || 0) + " mV")}
+          ${Array.isArray(core.load_avg) ? `<div class="metric">
+          <div class="metric-label">Load Avg</div>
+          <div class="metric-spread">
+            <span>${core.load_avg[0].toFixed(2)}</span>
+            <span>${core.load_avg[1].toFixed(2)}</span>
+            <span>${core.load_avg[2].toFixed(2)}</span>
+          </div>
+          </div>` : ""}
           ${renderMetric("Queue", String(core.queue_len ?? 0))}
           ${renderMetric("Errors", String(core.errors ?? 0))}
         </div>

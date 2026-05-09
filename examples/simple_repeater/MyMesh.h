@@ -11,6 +11,7 @@
   #include <LittleFS.h>
 #elif defined(ESP32)
   #include <SPIFFS.h>
+  #include "../../arch/esp32/CPUUsageTracker.h"
 #endif
 
 #ifdef WITH_RS232_BRIDGE
@@ -176,6 +177,9 @@ class MyMesh : public mesh::Mesh, public CommonCLICallbacks, public WebPanelComm
 #endif
 #if defined(ESP_PLATFORM) && WITH_WEB_PANEL
   WebService web;
+#endif
+#if defined(ESP32)
+  CPUUsageTracker _cpu_tracker;
 #endif
   StatsHistory _stats_history;
   struct {
