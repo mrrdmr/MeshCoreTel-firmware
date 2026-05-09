@@ -1330,25 +1330,48 @@ bool StatsHistory::buildSeriesJson(const char* series, char* buffer, size_t buff
   emitted = 0;
   size_t valid_emitted = 0;
   have_previous = false;
-  for (size_t i = 0; i < _sample_count && emitted < points; i += step, ++emitted) {
-    if (!getSampleFromOldest(i, sample)) {
-      break;
-    }
-    int value = 0;
-    const bool have_value = buildPointValue(sample, have_previous ? &previous : nullptr, series, value);
-    if (have_value) {
-      offset += snprintf(&buffer[offset], buffer_size - offset,
-                         "%s[%lu,%d]",
-                         valid_emitted == 0 ? "" : ",",
-                         static_cast<unsigned long>(sample.uptime_secs),
-                         value);
-      valid_emitted++;
-      if (offset + 24 >= buffer_size) {
+  if (strcmp(series, "packets") == 0) {
+    for (size_t i = 0; i < _sample_count && emitted < points; i += step, ++emitted) {
+      if (!getSampleFromOldest(i, sample)) {
         break;
       }
+      const int rx = (have_previous && sample.packets_recv >= previous.packets_recv)
+        ? (int)(sample.packets_recv - previous.packets_recv) : 0;
+      const int tx = (have_previous && sample.packets_sent >= previous.packets_sent)
+        ? (int)(sample.packets_sent - previous.packets_sent) : 0;
+      offset += snprintf(&buffer[offset], buffer_size - offset,
+                         "%s[%lu,%d,%d]",
+                         valid_emitted == 0 ? "" : ",",
+                         static_cast<unsigned long>(sample.uptime_secs),
+                         rx, tx);
+      valid_emitted++;
+      if (offset + 40 >= buffer_size) {
+        break;
+      }
+      previous = sample;
+      have_previous = true;
     }
-    previous = sample;
-    have_previous = true;
+  } else {
+    for (size_t i = 0; i < _sample_count && emitted < points; i += step, ++emitted) {
+      if (!getSampleFromOldest(i, sample)) {
+        break;
+      }
+      int value = 0;
+      const bool have_value = buildPointValue(sample, have_previous ? &previous : nullptr, series, value);
+      if (have_value) {
+        offset += snprintf(&buffer[offset], buffer_size - offset,
+                          "%s[%lu,%d]",
+                          valid_emitted == 0 ? "" : ",",
+                          static_cast<unsigned long>(sample.uptime_secs),
+                          value);
+        valid_emitted++;
+        if (offset + 24 >= buffer_size) {
+          break;
+        }
+      }
+      previous = sample;
+      have_previous = true;
+    }
   }
 
   snprintf(&buffer[offset], buffer_size - offset, "]}");

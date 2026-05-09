@@ -1804,7 +1804,6 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
       return Math.round(value) + " B";
     }
     function sparkStrokeColor(key, points) {
-      if (key === "packets") return "#d97706";
       if (key === "mcu_temp") {
         const values = Array.isArray(points)
           ? points.map((item) => item && item[1]).filter((v) => Number.isFinite(v))
@@ -1829,7 +1828,7 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
       return "#2f8f4e";
     }
     function sparkHoverColor(key, baseColor) {
-      if (key === "packets") return "#f59e0b";
+      if (key === "packets") return "#a78bfa";
       if (key === "gps_satellites") return "#48b267";
       return baseColor || "#2f8f4e";
     }
@@ -1906,7 +1905,9 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
       ctx.setTransform(window.devicePixelRatio || 1, 0, 0, window.devicePixelRatio || 1, 0, 0);
       ctx.clearRect(0, 0, width, height);
       if (!Array.isArray(points) || points.length < 1) return;
-      const values = points.map((item) => item[1]).filter((value) => Number.isFinite(value));
+      const values = points.map((item) =>
+        key === "packets" ? ((item[1] || 0) + (item[2] || 0)) : item[1]
+      ).filter((value) => Number.isFinite(value));
       if (values.length < 1) return;
       const range = sparkValueRange(key, values);
       const minValue = range.min;
@@ -1944,21 +1945,40 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
         x: (key === "packets" || key === "gps_satellites")
             ? (plotLeft + (slotWidth * index) + (slotWidth / 2))
             : ((index / Math.max(1, points.length - 1)) * (plotRight - plotLeft) + plotLeft),
-        y: scaleY(point[1])
+        y: (key === "packets")
+            ? scaleY((point[1] || 0) + (point[2] || 0))
+            : scaleY(point[1])
       }));
       const strokeColor = sparkStrokeColor(key, points);
       if (key === "packets" || key === "gps_satellites") {
         const barWidth = Math.max(3, Math.min(18, slotWidth * 0.68));
-        const hoverColor = sparkHoverColor(key, strokeColor);
-        coords.forEach((point, index) => {
-          const left = plotLeft + (slotWidth * index) + ((slotWidth - barWidth) / 2);
-          const top = point.y;
-          const barHeight = Math.max(0, plotBottom - top);
-          ctx.fillStyle = Number.isInteger(hoverIndex) && hoverIndex === index ? hoverColor : strokeColor;
-          if (barHeight > 0) {
-            ctx.fillRect(left, top, barWidth, barHeight);
-          }
-        });
+        if (key === "packets") {
+          coords.forEach((point, index) => {
+            const left = plotLeft + (slotWidth * index) + ((slotWidth - barWidth) / 2);
+            const isHover = Number.isInteger(hoverIndex) && hoverIndex === index;
+            const rx = points[index][1] || 0;
+            const tx = points[index][2] || 0;
+            const totalTop = point.y;
+            const totalH = Math.max(0, plotBottom - totalTop);
+            if (totalH > 0) {
+              const rxH = Math.round(totalH * ((rx + tx) > 0 ? rx / (rx + tx) : 0.5));
+              const txH = totalH - rxH;
+              ctx.fillStyle = isHover ? "#22d3ee" : "#06b6d4";
+              ctx.fillRect(left, totalTop, barWidth, txH);
+              ctx.fillStyle = isHover ? "#a78bfa" : "#8b5cf6";
+              ctx.fillRect(left, totalTop + txH, barWidth, rxH);
+            }
+          });
+        } else {
+          const hoverColor = sparkHoverColor(key, strokeColor);
+          coords.forEach((point, index) => {
+            const left = plotLeft + (slotWidth * index) + ((slotWidth - barWidth) / 2);
+            const top = point.y;
+            const barHeight = Math.max(0, plotBottom - top);
+            ctx.fillStyle = Number.isInteger(hoverIndex) && hoverIndex === index ? hoverColor : strokeColor;
+            if (barHeight > 0) ctx.fillRect(left, top, barWidth, barHeight);
+          });
+        }
         return;
       }
       ctx.lineWidth = 2;
@@ -1987,7 +2007,11 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
           tooltip.classList.remove("visible");
           return;
         }
-        tooltip.textContent = formatTrendValue(key, points[index][1]);
+        if (key === "packets") {
+          tooltip.textContent = "RX: " + (points[index][1] || 0) + "  TX: " + (points[index][2] || 0);
+        } else {
+          tooltip.textContent = formatTrendValue(key, points[index][1]);
+        }
         tooltip.classList.add("visible");
       };
       canvas.onmousemove = (event) => {
