@@ -628,7 +628,7 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
 	    <section class="card" id="cliPanel" style="display:none">
       <h2>Run CLI Command</h2>
       <div class="row-command">
-        <input id="command" placeholder="get mqtt.status">
+        <input id="command">
         <button id="runBtn">Run</button>
       </div>
       <p class="panel-copy">Authenticated sessions can run repeater CLI commands here.</p>
@@ -2368,10 +2368,12 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
     const openStats = () => window.location.assign("/stats");
     const openApp = () => window.location.assign("/app");
     document.getElementById("openStatsPanelBtn").onclick = () => openStats();
-    document.getElementById("command").addEventListener("keydown", (event) => {
+    document.getElementById("command").addEventListener("keydown", async (event) => {
       if (event.key === "Enter") {
         event.preventDefault();
-        document.getElementById("runBtn").click();
+        const cmd = document.getElementById("command");
+        await runCommand(cmd.value);
+        cmd.value = "";
       }
     });
 	    document.querySelectorAll("[data-cmd]").forEach((btn) => btn.onclick = () => runCommand(btn.dataset.cmd));
