@@ -11,7 +11,9 @@ class CPUUsageTracker {
 public:
   void begin();
 
-  float getCore0Util() const { return _sma_avg; }
+  float getCore0Util() const {
+    return (float)_sma_sum * (1.0f / (SMA_WINDOW * 255.0f));
+  }
 
 private:
   static constexpr uint8_t SMA_WINDOW = 64;  // power of 2 — enables & mask
@@ -27,10 +29,9 @@ private:
   uint32_t _last_busy = 0;
 
   uint8_t  _sma_buf[SMA_WINDOW] = {};
-  uint16_t _sma_sum = 0;
   uint8_t  _sma_idx = 0;
 
-  volatile float _sma_avg = 0.0f;
+  volatile uint16_t _sma_sum = 0;
 
   esp_timer_handle_t _timer = nullptr;
 

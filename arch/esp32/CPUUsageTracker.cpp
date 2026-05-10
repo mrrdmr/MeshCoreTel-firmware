@@ -30,11 +30,10 @@ void CPUUsageTracker::_onSample() {
   const float sample = (total > 0) ? (float)db / (float)total : 0.0f;
 
   const uint8_t s8 = (uint8_t)(sample * 255.0f + 0.5f);
-  _sma_sum -= _sma_buf[_sma_idx];
+  const uint16_t last = _sma_buf[_sma_idx];
   _sma_buf[_sma_idx] = s8;
-  _sma_sum += s8;
+  _sma_sum = (_sma_sum - last) + s8;
   _sma_idx = (_sma_idx + 1) & (SMA_WINDOW - 1);
-  _sma_avg = (float)_sma_sum * (1.0f / (SMA_WINDOW * 255.0f));
 }
 
 void CPUUsageTracker::begin() {
