@@ -436,7 +436,8 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
     .iconbtn { width:44px; padding:12px 0; }
     .placeholder-slot { display:block; width:44px; height:44px; }
     .savebtn { width:100%; background:var(--accent); color:var(--button-text); border:none; }
-    .savebtn:hover { background:var(--accent-hover); }
+    .savebtn:not(:disabled):hover { background:var(--accent-hover); }
+    .savebtn:disabled { opacity:0.45; cursor:not-allowed; }
     .broker-stack { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,2fr); gap:12px; align-items:start; }
     .broker-group { display:grid; gap:8px; align-content:start; }
     .broker-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
@@ -749,13 +750,12 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
         <div class="section-group">
           <h3>Radio Settings</h3>
           <div class="field-card">
-            <label class="label" for="radioPreset">Preset</label>
             <div class="row">
               <div class="field-card">
                 <div>
-                  <label class="label" for="radioCurrent">Current Radio</label>
+                  <label class="label" id="radioCurrentLabel" for="radioCurrent">Current Radio</label>
                   <div class="fieldline">
-                    <input id="radioCurrent" placeholder="915.800 / BW250 / SF10 / CR5" readonly disabled>
+                    <input id="radioCurrent" placeholder="Loading..." readonly disabled>
                     <button id="refreshRadioBtn" class="iconbtn" title="Refresh current radio">&#8635;</button>
                   </div>
                 </div>
@@ -1012,7 +1012,7 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
 
   </main>
   <script>
-    const RADIO_PRESETS_URL = "https://api.meshcore.nz/api/v1/config";
+    const RADIO_PRESETS_URL = "https://api.vbart.ru/meshcore-firmware/v1/conf.json";
     const isStatsPage = window.location.pathname === "/stats";
     const PANEL_TITLE_KEY = "repeater-panel-title";
     let token = sessionStorage.getItem("repeater-token") || "";
@@ -1020,6 +1020,7 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
     let radioPresetEntries = [];
     let currentRadioConfig = null;
     let statsLastFetchedAt = null;
+    let radioSettingsChanged = false;
     const statusEl = document.getElementById("status");
     const replyEl = document.getElementById("reply");
     const themeToggleEl = document.getElementById("themeToggle");
@@ -1179,19 +1180,10 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
       };
     }
     function radioSignature(config) {
-      const normalized = normalizeRadioConfig(config);
-      if (!normalized) return "";
-      return [
-        normalized.frequency.toFixed(3),
-        normalized.bandwidth.toFixed(3),
-        normalized.spreadingFactor,
-        normalized.codingRate
-      ].join("|");
+      return [config.frequency, config.bandwidth, config.spreadingFactor, config.codingRate].join("|");
     }
     function formatRadioConfig(config) {
-      const normalized = normalizeRadioConfig(config);
-      if (!normalized) return "";
-      return `${normalized.frequency.toFixed(3)} / BW${normalized.bandwidth.toFixed(3)} / SF${normalized.spreadingFactor} / CR${normalized.codingRate}`;
+      return `${config.frequency} / BW${config.bandwidth} / SF${config.spreadingFactor} / CR${config.codingRate}`;
     }
     function parseRadioValue(value) {
       const parts = String(value || "").split(",");
@@ -1208,6 +1200,10 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
       if (!el) return;
       el.textContent = message || "";
       el.style.color = isError ? "var(--status-red)" : "var(--text-muted)";
+    }
+    function setRadioCurrentLabel(text) {
+      const el = document.getElementById("radioCurrentLabel");
+      el.textContent = text;
     }
     function setGhostNodeModeStatus(message, isError) {
       const el = document.getElementById("ghostNodeModeStatus");
@@ -1311,30 +1307,20 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
     }
     function syncRadioPresetUi() {
       const currentEl = document.getElementById("radioCurrent");
-      if (currentEl) {
-        currentEl.value = currentRadioConfig ? formatRadioConfig(currentRadioConfig) : "";
+      currentEl.value = currentRadioConfig ? formatRadioConfig(currentRadioConfig) : "";
+      if (radioSettingsChanged) {
+        setRadioCurrentLabel("New radio");
+        setRadioPresetStatus("Radio settings were changed, reboot is required.", true);
+      } else {
+        setRadioCurrentLabel("Current Radio");
+        setRadioPresetStatus("", false);
       }
-      const selectEl = document.getElementById("radioPreset");
       const applyBtn = document.getElementById("applyRadioPresetBtn");
-      if (!selectEl || !applyBtn) return;
-      const currentSig = radioSignature(currentRadioConfig);
-      let matchedIndex = -1;
-      for (let i = 0; i < radioPresetEntries.length; i++) {
-        if (radioSignature(radioPresetEntries[i]) === currentSig) {
-          matchedIndex = i;
-          break;
-        }
-      }
+      if (!applyBtn) return;
       if (!radioPresetEntries.length) {
         applyBtn.disabled = true;
         return;
       }
-      if (matchedIndex >= 0) {
-        selectEl.value = String(matchedIndex);
-        applyBtn.disabled = false;
-        return;
-      }
-      selectEl.value = "";
       applyBtn.disabled = true;
     }
     function toneForPercent(percent, invert) {
@@ -2376,6 +2362,7 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
         setRadioPresetStatus("Current radio config was not recognised.", true);
         return;
       }
+      document.getElementById("radioPreset").value = "";
       currentRadioConfig = parsed;
       setRadioPresetStatus("");
       syncRadioPresetUi();
@@ -2393,9 +2380,7 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
     async function loadRadioPresets() {
       const selectEl = document.getElementById("radioPreset");
       const applyBtn = document.getElementById("applyRadioPresetBtn");
-      if (selectEl) {
-        selectEl.innerHTML = '<option value="">Loading presets...</option>';
-      }
+      selectEl.innerHTML = '<option value="">Loading presets...</option>';
       if (applyBtn) applyBtn.disabled = true;
       setRadioPresetStatus("");
       try {
@@ -2403,20 +2388,14 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
         if (!res.ok) {
           throw new Error("Preset service returned " + res.status);
         }
-        const payload = await res.json();
-        const config = payload && payload.config ? payload.config : {};
-        const suggested = config && config.suggested_radio_settings ? config.suggested_radio_settings : {};
-        const entries = Array.isArray(suggested.entries) ? suggested.entries : [];
-        radioPresetEntries = entries.map((entry) => ({
-          title: String(entry.title || "Unnamed preset"),
-          description: String(entry.description || ""),
-          frequency: formatDecimal(entry.frequency, 3),
-          bandwidth: formatDecimal(entry.bandwidth, 3),
-          spreadingFactor: Number.parseInt(entry.spreading_factor, 10),
-          codingRate: Number.parseInt(entry.coding_rate, 10)
-        })).filter((entry) => radioSignature(entry));
-        if (!selectEl) return;
-        const options = ['<option value="">Custom / current</option>'];
+        const entries = await res.json();
+        if (!Array.isArray(entries)) throw new Error("Unexpected preset format");
+        radioPresetEntries = entries.map((entry) => {
+          const normalized = normalizeRadioConfig(entry.settings);
+          if (!normalized) return null;
+          return { title: `${entry.name} (${entry.code})`, ...normalized };
+        }).filter(Boolean);
+        const options = ['<option value="">Load from preset</option>'];
         for (let i = 0; i < radioPresetEntries.length; i++) {
           const preset = radioPresetEntries[i];
           options.push(`<option value="${i}">${escapeHtml(preset.title)}</option>`);
@@ -2425,9 +2404,7 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
         syncRadioPresetUi();
       } catch (error) {
         radioPresetEntries = [];
-        if (selectEl) {
-          selectEl.innerHTML = '<option value="">Community presets unavailable</option>';
-        }
+        selectEl.innerHTML = '<option value="">Community presets unavailable</option>';
         if (applyBtn) applyBtn.disabled = true;
         setRadioPresetStatus(error && error.message ? error.message : "Unable to load community presets.", true);
       }
@@ -2574,29 +2551,30 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
         return;
       }
       const preset = radioPresetEntries[Number.parseInt(value, 10)];
-      if (!preset) {
+      const isAlreadySet = currentRadioConfig && radioSignature(preset) === radioSignature(currentRadioConfig);
+      if (isAlreadySet) {
         syncRadioPresetUi();
         return;
       }
+      const currentEl = document.getElementById("radioCurrent");
+      currentEl.value = formatRadioConfig(preset);
+      setRadioCurrentLabel("Selected radio preset");
+      setRadioPresetStatus("Click \"Save\" to apply.", false);
       document.getElementById("applyRadioPresetBtn").disabled = false;
     });
     document.getElementById("applyRadioPresetBtn").onclick = async () => {
       const selectEl = document.getElementById("radioPreset");
       const index = Number.parseInt(selectEl.value, 10);
       const preset = radioPresetEntries[index];
-      if (!preset) {
-        setRadioPresetStatus("Select a community preset first.", true);
-        return;
-      }
       const command = `set radio ${preset.frequency},${preset.bandwidth},${preset.spreadingFactor},${preset.codingRate}`;
       const result = await runCommand(command);
       if (!result.ok) {
         setRadioPresetStatus(parseReplyValue(result.text) || "Unable to apply radio preset.", true);
         return;
       }
-      currentRadioConfig = normalizeRadioConfig(preset);
+      currentRadioConfig = preset;
+      radioSettingsChanged = true;
       syncRadioPresetUi();
-      setRadioPresetStatus("Preset saved. Reboot to apply the new radio settings.", false);
     };
     document.getElementById("rebootBtn").onclick = async () => {
       if (confirm("Reboot the repeater now?")) {
