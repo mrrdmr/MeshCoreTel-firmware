@@ -1965,8 +1965,9 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
     function bindSparkHover(canvas, points, key) {
       const tooltip = document.getElementById("tooltip-" + key);
       if (!canvas || !tooltip || !Array.isArray(points) || points.length < 1) return;
-      const updateHover = (index) => {
+      const updateHover = (index, showTooltip = true) => {
         drawSparkline(canvas, points, key, index);
+        if (!showTooltip) return;
         if (index == null || index < 0 || index >= points.length) {
           tooltip.textContent = "";
           tooltip.classList.remove("visible");
@@ -1979,24 +1980,42 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
         }
         tooltip.classList.add("visible");
       };
+      canvas._updateHover = updateHover;
+      canvas._points = points;
       canvas.onmousemove = (event) => {
         const rect = canvas.getBoundingClientRect();
         const width = rect.width || 1;
         const x = Math.max(0, Math.min(width, event.clientX - rect.left));
-        const index = Math.max(0, Math.min(points.length - 1, Math.round((x / width) * (points.length - 1))));
-        updateHover(index);
+        const fraction = x / width;
+        document.querySelectorAll('#statsTrends canvas').forEach(c => {
+          if (!c._updateHover || !c._points) return;
+          const idx = Math.max(0, Math.min(c._points.length - 1, Math.round(fraction * (c._points.length - 1))));
+          c._updateHover(idx, c === canvas);
+        });
       };
-      canvas.onmouseleave = () => updateHover(null);
+      canvas.onmouseleave = () => {
+        document.querySelectorAll('#statsTrends canvas').forEach(c => {
+          if (c._updateHover) c._updateHover(null, c === canvas);
+        });
+      };
       canvas.ontouchstart = (event) => {
         const touch = event.touches && event.touches[0];
         if (!touch) return;
         const rect = canvas.getBoundingClientRect();
         const width = rect.width || 1;
         const x = Math.max(0, Math.min(width, touch.clientX - rect.left));
-        const index = Math.max(0, Math.min(points.length - 1, Math.round((x / width) * (points.length - 1))));
-        updateHover(index);
+        const fraction = x / width;
+        document.querySelectorAll('#statsTrends canvas').forEach(c => {
+          if (!c._updateHover || !c._points) return;
+          const idx = Math.max(0, Math.min(c._points.length - 1, Math.round(fraction * (c._points.length - 1))));
+          c._updateHover(idx, c === canvas);
+        });
       };
-      canvas.ontouchend = () => updateHover(null);
+      canvas.ontouchend = () => {
+        document.querySelectorAll('#statsTrends canvas').forEach(c => {
+          if (c._updateHover) c._updateHover(null, c === canvas);
+        });
+      };
     }
     function setTrendCardState(key, title, value) {
       const card = document.getElementById("trend-" + key);
