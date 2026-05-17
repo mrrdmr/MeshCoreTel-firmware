@@ -1661,7 +1661,12 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
       }
       const renderNeighbourId = (neighbour) => {
         const shortId = escapeHtml(neighbour.id || "--");
-        return shortId;
+        const fullId = typeof neighbour.full_id === "string" ? neighbour.full_id.trim() : "";
+        if (!/^[0-9A-Fa-f]{64}$/.test(fullId)) {
+          return shortId;
+        }
+        const href = "https://meshcoretel.ru/" + encodeURIComponent(fullId.toUpperCase());
+        return `<a href="${href}" target="_blank" rel="noopener noreferrer">${shortId}</a>`;
       };
       const rows = neighbours.map((neighbour) => `<tr>
         <td>${renderNeighbourId(neighbour)}</td>
