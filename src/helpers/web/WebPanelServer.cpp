@@ -1627,6 +1627,14 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
         ${renderMetricList(metrics, "metric-grid-4")}
       </section>`;
     }
+    function bootReasonLabel(value) {
+      const ESP_RESET_REASONS = {
+        1: "power on", 2: "external reset", 3: "software reset",
+        4: "panic/exception", 5: "interrupt watchdog", 6: "task watchdog",
+        7: "watchdog", 8: "deep sleep wake", 9: "brownout", 10: "SDIO reset"
+      };
+      return ESP_RESET_REASONS[value] || ("reason " + value);
+    }
     function renderEventsSection(events) {
       if (!Array.isArray(events) || !events.length) {
         return `<section class="hud-card">
@@ -1634,10 +1642,15 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
           <div class="events-empty">No recent events</div>
         </section>`;
       }
-      const rows = events.map((event) => `<tr>
-        <td>${escapeHtml(event.type || "event")}</td>
-        <td>${escapeHtml(formatDuration(event.t || 0))}</td>
-      </tr>`).join("");
+      const rows = events.map((event) => {
+        const label = event.type === "boot" && event.value != null
+          ? `boot (${bootReasonLabel(event.value)})`
+          : (event.type || "event");
+        return `<tr>
+          <td>${escapeHtml(label)}</td>
+          <td>${escapeHtml(formatDuration(event.t || 0))}</td>
+        </tr>`;
+      }).join("");
       return `<section class="hud-card">
         <h3>Events</h3>
         <div class="events-table-wrap">

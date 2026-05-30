@@ -84,6 +84,26 @@ public:
 
   uint8_t getStartupReason() const override { return startup_reason; }
 
+  uint32_t getResetReason() const override {
+    return (uint32_t)esp_reset_reason();
+  }
+
+  const char* getResetReasonString(uint32_t reason) override {
+    switch ((esp_reset_reason_t)reason) {
+      case ESP_RST_POWERON:   return "Power On";
+      case ESP_RST_EXT:       return "External Reset";
+      case ESP_RST_SW:        return "Software Reset";
+      case ESP_RST_PANIC:     return "Panic/Exception";
+      case ESP_RST_INT_WDT:   return "Interrupt Watchdog";
+      case ESP_RST_TASK_WDT:  return "Task Watchdog";
+      case ESP_RST_WDT:       return "Watchdog";
+      case ESP_RST_DEEPSLEEP: return "Deep Sleep Wake";
+      case ESP_RST_BROWNOUT:  return "Brownout";
+      case ESP_RST_SDIO:      return "SDIO Reset";
+      default:                return "Unknown";
+    }
+  }
+
 #if defined(P_LORA_TX_LED)
   void onBeforeTransmit() override {
     digitalWrite(P_LORA_TX_LED, HIGH);   // turn TX LED on

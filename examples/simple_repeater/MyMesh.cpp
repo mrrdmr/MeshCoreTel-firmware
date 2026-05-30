@@ -1331,7 +1331,7 @@ void MyMesh::begin(FILESYSTEM *fs, ArchiveStorage* archive) {
     next_archive_neighbours_flush_ms = millis() + kArchiveNeighboursFlushIntervalMs;
   }
   if (web.isWebStatsEnabled()) {
-    recordStatsEvent(HISTORY_EVENT_BOOT);
+    recordStatsEvent(HISTORY_EVENT_BOOT, board.getResetReason());
     if (_archive != nullptr) {
       recordStatsEvent(_archive->isMounted() ? HISTORY_EVENT_ARCHIVE_MOUNTED : HISTORY_EVENT_ARCHIVE_UNAVAILABLE);
     }

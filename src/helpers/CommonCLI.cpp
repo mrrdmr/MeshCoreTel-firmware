@@ -898,10 +898,13 @@ void CommonCLI::handleGetCmd(uint32_t sender_timestamp, char* command, char* rep
     strcpy(reply, "ERROR: Power management not supported");
 #endif
   } else if (memcmp(config, "pwrmgt.bootreason", 17) == 0) {
-#ifdef NRF52_POWER_MANAGEMENT
+#if defined(NRF52_POWER_MANAGEMENT)
     sprintf(reply, "> Reset: %s; Shutdown: %s",
       _board->getResetReasonString(_board->getResetReason()),
       _board->getShutdownReasonString(_board->getShutdownReason()));
+#elif defined(ESP_PLATFORM)
+    sprintf(reply, "> Reset: %s",
+      _board->getResetReasonString(_board->getResetReason()));
 #else
     strcpy(reply, "ERROR: Power management not supported");
 #endif
