@@ -4,7 +4,8 @@ site_description: "Документация по специфичным для M
 
 repo_name: VBart/MeshCoreTel-firmware
 repo_url: https://github.com/VBart/MeshCoreTel-firmware
-edit_uri: edit/main/docs/
+edit_uri: edit/main/meshcoretel-docs/
+docs_dir: meshcoretel-docs
 
 theme:
   name: material

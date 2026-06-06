@@ -32,14 +32,14 @@ Only modify code for clearly scoped EastMesh features:
 
 | Change                | File                 |
 | --------------------- | -------------------- |
-| CLI                   | `docs/custom-cli.md` |
-| Web panel UI/behavior | `docs/web-panel.md`  |
+| CLI                   | `meshcoretel-docs/custom-cli.md` |
+| Web panel UI/behavior | `meshcoretel-docs/web-panel.md`  |
 | Releases              | `release-notes.yml`  |
-| Flashing guidance     | `docs/releases.md`   |
+| Flashing guidance     | `meshcoretel-docs/releases.md`   |
 
 ### Web Panel Gate
 
-If editing `examples/simple_repeater/MyMesh.cpp`, also update `docs/custom-cli.md`.
+If editing `examples/simple_repeater/MyMesh.cpp`, also update `meshcoretel-docs/custom-cli.md`.
 
 ## Tooling
 
@@ -96,8 +96,8 @@ uv run pio run -e T_Beam_S3_Supreme_SX1262_companion_radio_wifi
 Build with release-style metadata:
 
 ```bash
-export FIRMWARE_VERSION=v1.14.1
-export MESHCORETEL_VERSION=v1.0.1
+export FIRMWARE_VERSION=v1.15.0
+export MESHCORETEL_VERSION=v1.1.2
 bash build.sh build-firmware heltec_v4_repeater_mqtt
 bash build.sh build-firmware T_Beam_S3_Supreme_SX1262_repeater_mqtt
 ```
@@ -116,7 +116,7 @@ uv run pio run -e T_Beam_S3_Supreme_SX1262_repeater_mqtt -t upload --upload-port
 - `variants/eastmesh_mqtt/platformio.ini`
 - `examples/simple_repeater/MyMesh.cpp`
 - `src/helpers/mqtt/MQTTUplink.cpp`
-- `docs/*.md`
+- `meshcoretel-docs/*.md`
 - `RELEASE.md`
 - `release-notes.yml`
 
@@ -125,15 +125,15 @@ uv run pio run -e T_Beam_S3_Supreme_SX1262_repeater_mqtt -t upload --upload-port
 If you change any of the following, update docs in the same PR when practical:
 
 - Web-panel commands:
-  - update `docs/custom-cli.md`
+  - update `meshcoretel-docs/custom-cli.md`
 - Web-panel user-facing behavior, sections, controls, or troubleshooting:
-  - update `docs/web-panel.md`
+  - update `meshcoretel-docs/web-panel.md`
 - EastMesh CLI additions or changed semantics:
-  - update `docs/custom-cli.md`
+  - update `meshcoretel-docs/custom-cli.md`
 - Release/tag preparation:
   - update `release-notes.yml`
 - Flashing/release asset guidance:
-  - update `docs/releases.md`
+  - update `meshcoretel-docs/releases.md`
 
 ## Repeater MQTT Notes
 
