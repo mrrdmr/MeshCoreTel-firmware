@@ -88,22 +88,25 @@ void CommonCLI::loadPrefsInt(FILESYSTEM* fs, const char* filename) {
     file.read((uint8_t *)&_prefs->discovery_mod_timestamp, sizeof(_prefs->discovery_mod_timestamp)); // 162
     file.read((uint8_t *)&_prefs->adc_multiplier, sizeof(_prefs->adc_multiplier));                 // 166
     file.read((uint8_t *)_prefs->owner_info, sizeof(_prefs->owner_info));                          // 170
-    if (file.available() >= (int)sizeof(_prefs->rx_boosted_gain)) {
-      file.read((uint8_t *)&_prefs->rx_boosted_gain, sizeof(_prefs->rx_boosted_gain));            // 290
+    if (file.available() >= (int)sizeof(_prefs->reserved_290)) {
+      file.read((uint8_t *)&_prefs->reserved_290, sizeof(_prefs->reserved_290));                  // 290 reserved
     }
     if (file.available() >= (int)sizeof(_prefs->rx_boosted_gain)) {
-      file.read((uint8_t *)&_prefs->flood_max_unscoped, sizeof(_prefs->flood_max_unscoped));      // 291
-    }
-    if (file.available() >= (int)sizeof(_prefs->rx_boosted_gain)) {
-      file.read((uint8_t *)&_prefs->flood_max_advert, sizeof(_prefs->flood_max_advert));          // 292
+      file.read((uint8_t *)&_prefs->rx_boosted_gain, sizeof(_prefs->rx_boosted_gain));            // 291
     }
     if (file.available() >= (int)sizeof(_prefs->fan_mode)) {
-      file.read((uint8_t *)&_prefs->fan_mode, sizeof(_prefs->fan_mode));                          // 293
+      file.read((uint8_t *)&_prefs->fan_mode, sizeof(_prefs->fan_mode));                          // 292
     }
     if (file.available() >= (int)sizeof(_prefs->fan_timeout_secs)) {
-      file.read((uint8_t *)&_prefs->fan_timeout_secs, sizeof(_prefs->fan_timeout_secs));          // 294
+      file.read((uint8_t *)&_prefs->fan_timeout_secs, sizeof(_prefs->fan_timeout_secs));          // 293
     }
-    // next: 296
+    if (file.available() >= (int)sizeof(_prefs->flood_max_unscoped)) {
+      file.read((uint8_t *)&_prefs->flood_max_unscoped, sizeof(_prefs->flood_max_unscoped));      // 295
+    }
+    if (file.available() >= (int)sizeof(_prefs->flood_max_advert)) {
+      file.read((uint8_t *)&_prefs->flood_max_advert, sizeof(_prefs->flood_max_advert));          // 296
+    }
+    // next: 297
 
     // sanitise bad pref values
     _prefs->rx_delay_base = constrain(_prefs->rx_delay_base, 0, 20.0f);
@@ -195,12 +198,13 @@ void CommonCLI::savePrefs(FILESYSTEM* fs) {
     file.write((uint8_t *)&_prefs->discovery_mod_timestamp, sizeof(_prefs->discovery_mod_timestamp)); // 162
     file.write((uint8_t *)&_prefs->adc_multiplier, sizeof(_prefs->adc_multiplier));                 // 166
     file.write((uint8_t *)_prefs->owner_info, sizeof(_prefs->owner_info));                          // 170
-    file.write((uint8_t *)&_prefs->rx_boosted_gain, sizeof(_prefs->rx_boosted_gain));              // 290
-    file.write((uint8_t *)&_prefs->flood_max_unscoped, sizeof(_prefs->flood_max_unscoped));        // 291
-    file.write((uint8_t *)&_prefs->flood_max_advert, sizeof(_prefs->flood_max_advert));            // 292
-    file.write((uint8_t *)&_prefs->fan_mode, sizeof(_prefs->fan_mode));                            // 293
-    file.write((uint8_t *)&_prefs->fan_timeout_secs, sizeof(_prefs->fan_timeout_secs));            // 294
-    // next: 296
+    file.write((uint8_t *)&_prefs->reserved_290, sizeof(_prefs->reserved_290));                    // 290 reserved
+    file.write((uint8_t *)&_prefs->rx_boosted_gain, sizeof(_prefs->rx_boosted_gain));              // 291
+    file.write((uint8_t *)&_prefs->fan_mode, sizeof(_prefs->fan_mode));                            // 292
+    file.write((uint8_t *)&_prefs->fan_timeout_secs, sizeof(_prefs->fan_timeout_secs));            // 293
+    file.write((uint8_t *)&_prefs->flood_max_unscoped, sizeof(_prefs->flood_max_unscoped));        // 295
+    file.write((uint8_t *)&_prefs->flood_max_advert, sizeof(_prefs->flood_max_advert));            // 296
+    // next: 297
 
     file.close();
   }
