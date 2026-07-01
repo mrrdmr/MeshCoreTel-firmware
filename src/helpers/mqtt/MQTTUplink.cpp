@@ -96,8 +96,11 @@ void logMqttMemorySnapshot(const char*, const char* = nullptr) {
 }
 
 const MQTTUplink::BrokerSpec MQTTUplink::kBrokerSpecs[3] = {
-    {"meshcoretel", "meshcoretel", "meshcoretel.ru", "mqtt://meshcoretel.ru:1883",
-     kMeshcoretelBit, true, "meshcore", "meshcore"},
+//    {"meshcoretel", "meshcoretel", "skmesh.ru", "mqtt://skmesh.ru:1883",
+//     kMeshcoretelBit, true, "meshcore", "meshcore"},
+//  {"skmesh-dev", "skmesh-dev", "mqtt.dev.skmesh.ru", "wss://mqtt.dev.skmesh.ru:443/mqtt",
+    {"skmesh-ru", "skmesh-ru", "mqtt.skmesh.ru", "wss://mqtt.skmesh.ru:443/mqtt",
+     kMeshcoretelBit, false, nullptr, nullptr},
     {"letsmesh-eu", "letsmesh-eu", "mqtt-eu-v1.letsmesh.net", "wss://mqtt-eu-v1.letsmesh.net:443/mqtt",
      kLetsmeshEuBit, false, nullptr, nullptr},
     {"letsmesh-us", "letsmesh-us", "mqtt-us-v1.letsmesh.net", "wss://mqtt-us-v1.letsmesh.net:443/mqtt",
@@ -703,7 +706,8 @@ void MQTTUplink::ensureBroker(BrokerState& broker, bool allow_new_connect) {
     cfg.broker.address.port = 443;
     cfg.broker.address.transport = MQTT_TRANSPORT_OVER_WSS;
     cfg.broker.address.path = "/mqtt";
-    cfg.broker.verification.certificate = mqtt_ca_certs::kLetsmeshWe1Pem;
+//    cfg.broker.verification.certificate = mqtt_ca_certs::kLetsmeshWe1Pem;
+    cfg.broker.verification.certificate = mqtt_ca_certs::kIsrgRootX1Pem;
     cfg.credentials.authentication.password = broker.token;
   }
   cfg.credentials.username = broker.username;
@@ -727,7 +731,8 @@ void MQTTUplink::ensureBroker(BrokerState& broker, bool allow_new_connect) {
     cfg.port = 443;
     cfg.transport = MQTT_TRANSPORT_OVER_WSS;
     cfg.path = "/mqtt";
-    cfg.cert_pem = mqtt_ca_certs::kLetsmeshWe1Pem;
+  //  cfg.cert_pem = mqtt_ca_certs::kLetsmeshWe1Pem;
+    cfg.cert_pem = mqtt_ca_certs::kIsrgRootX1Pem;
     cfg.password = broker.token;
   }
   cfg.username = broker.username;
