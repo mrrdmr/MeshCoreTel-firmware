@@ -22,7 +22,7 @@ void MQTTPrefsStore::setDefaults(MQTTPrefs& prefs) {
   prefs.deprecated_web_stats_enabled = 0;
   prefs.legacy_wifi_powersave = 0;
   prefs.status_interval_ms = kFixedStatusIntervalMs;
-  StrHelper::strncpy(prefs.iata, MQTT_DEFAULT_IATA, sizeof(prefs.iata));
+  StrHelper::strncpy(prefs.iata, "STW", sizeof(prefs.iata));
 #ifdef WIFI_SSID
   StrHelper::strncpy(prefs.legacy_wifi_ssid, WIFI_SSID, sizeof(prefs.legacy_wifi_ssid));
 #endif
